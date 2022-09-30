@@ -1,0 +1,14 @@
+default:
+    autoload:
+        '': '%paths.base%/../features/bootstrap'
+    suites:
+        default:
+            paths: [ '%paths.base%/../features' ]
+            contexts:
+                - FeatureContext:
+    extensions:
+      Imbo\BehatApiExtension:
+        apiClient:
+          base_uri: http://localhost:8080
+          timeout: 5.0
+          verify: false
