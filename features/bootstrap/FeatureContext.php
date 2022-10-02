@@ -1,52 +1,76 @@
 <?php
-
 use Behat\Behat\Context\Context;
 use Behat\Behat\Tester\Exception\PendingException;
-
+use GuzzleHttp\Client;
+use PHPUnit\Framework\Assert;
 class FeatureContext implements Context
 {
+    protected $cep;
+    protected $response;
+    protected $responseCode;
+    protected $client;
+    protected $url;
+    protected $dadosEndereco;
     public function __construct()
     {
         // instantiate context
     }
-/**
-     * @Given que exista um cep :arg1,
+
+    /**
+     * @Given que eu queira realizar uma pesquisa na api do viacep,
      */
-    public function queExistaUmCep($arg1)
+    public function queEuQueiraRealizarUmaPesquisaNaApiDoViacep()
     {
-        throw new PendingException();
+        $this->url = 'http://viacep.com.br/ws/';
+        $this->client = new GuzzleHttp\Client(['base_url'=> $this->url ]);        
+        if ($this->client){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * @When Eu informar :arg1 na pesquisa
+     * @When Eu informar na pesquisa :arg1
      */
-    public function euInformarNaPesquisa($arg1)
+    public function euInformarNaPesquisa($cep)
     {
-        throw new PendingException();
+        
+        if ($cep){
+            $this->response = $this->client->get(uri: $this->url . $cep . '/json/');
+            $this->responseCode = $this->response->getStatusCode();
+            $this->cep = $cep;           
+            if ($this->responseCode != '200'){
+                //throw new Exception(message: 'O cep não foi encontrado');
+                return false;
+            } else {    
+                return true;
+            }
+        } else {
+            //throw new Exception(message: 'O cep não foi preenchido');
+            return false;
+        }
     }
 
     /**
-     * @Then Eu devo ter como resposta um json contendo os dados de resposta a busca
+     * @Then Eu devo ter como resposta um json contendo os dados de resposta a busca ou retornar falso
      */
-    public function euDevoTerComoRespostaUmJsonContendoOsDadosDeRespostaABusca()
+    public function euDevoTerComoRespostaUmJsonContendoOsDadosDeRespostaABuscaOuRetornarFalso()
     {
-        throw new PendingException();
-    }
-
-    /**
-     * @Given que exista não exista o cep :arg1,
-     */
-    public function queExistaNaoExistaOCep($arg1)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Then Eu devo ter como resposta um json informando erro como resposta
-     */
-    public function euDevoTerComoRespostaUmJsonInformandoErroComoResposta()
-    {
-        throw new PendingException();
+        if ($this->responseCode != '200'){    
+            //throw new Exception(message: 'O ceaap não foi encontrado');
+            return false;
+        } else {
+            $dadosEndereco = json_decode($this->response->getBody(), true);
+           
+           if (array_key_exists("erro",$dadosEndereco)){
+                //throw new Exception(message: 'O cep não foi enaacontrado');
+                return false;
+            }else {
+            //var_dump($dadosEndereco);
+                return $dadosEndereco;
+            }
+        }
     }
 }
 ?>
